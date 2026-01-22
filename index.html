@@ -11,86 +11,54 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --primary: #6366f1; --primary-dark: #4f46e5; --bg: #0f0f23; --card-bg: #1a1b2e; --text: #ffffff; --text-secondary: #a0a0c0; --success: #22c55e; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
-        
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; }
         .container { display: flex; height: 100%; max-width: 1400px; margin: 0 auto; }
-        
-        /* Sidebar */
         .sidebar { width: 300px; background: var(--card-bg); padding: 1rem; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
-        .search-input { width: 100%; padding: 0.8rem; margin: 1rem 0; border: none; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid transparent; }
-        .search-input:focus { border-color: var(--primary); outline: none; }
-        
-        /* Main Content */
         .main-content { flex: 1; display: flex; flex-direction: column; }
         .header { padding: 1rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
-        
-        /* Buttons */
         .btn { padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; border: none; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
         .btn-save { background: var(--success); color: white; }
         .btn-delete { background: #ef4444; color: white; }
-        
-        /* Notes List */
-        .notes-list { flex: 1; overflow-y: auto; }
+        .notes-list { flex: 1; overflow-y: auto; margin-top: 10px; }
         .note-item { background: rgba(255,255,255,0.03); padding: 1rem; margin-bottom: 0.8rem; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
-        .note-item:hover { border-color: var(--primary); }
         .note-item.active { border-color: var(--primary); background: rgba(99, 102, 241, 0.1); }
-        .note-title-small { font-weight: bold; font-size: 0.95rem; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        /* Editor */
-        .editor { flex: 1; display: flex; flex-direction: column; padding: 2rem; background: var(--bg); }
-        .editor-input { border: none; background: transparent; color: var(--text); font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; width: 100%; outline: none; }
+        .editor { flex: 1; display: flex; flex-direction: column; padding: 2rem; }
+        .editor-input { border: none; background: transparent; color: var(--text); font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; outline: none; }
         .editor-textarea { flex: 1; border: none; background: transparent; color: var(--text); font-size: 1.1rem; line-height: 1.6; resize: none; outline: none; }
-
-        .auth-box { display: flex; align-items: center; gap: 1rem; }
-        .user-name { font-size: 0.9rem; color: var(--text-secondary); }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="sidebar">
-            <div id="authContent" style="display: none;">
+            <div id="sideActions" style="display: none;">
                 <button class="btn btn-primary" style="width: 100%;" onclick="createNewNote()">
                     <i class="fas fa-plus"></i> Новая заметка
                 </button>
             </div>
-            <input type="text" class="search-input" placeholder="Поиск заметки..." onkeyup="searchNotes(this.value)">
             <div class="notes-list" id="notesList"></div>
         </div>
 
         <div class="main-content">
             <header class="header">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <i class="fas fa-sticky-note" style="color:var(--primary); font-size:1.5rem;"></i>
-                    <h2 style="font-size:1.2rem;">Neuron Notes</h2>
-                </div>
-
-                <div class="auth-box">
-                    <span id="userName" class="user-name"></span>
-                    <button id="loginBtn" class="btn btn-outline" onclick="login()">Вход</button>
-                    <button id="logoutBtn" class="btn btn-outline" style="display:none;" onclick="logout()">Выход</button>
+                <h2>Neuron Notes</h2>
+                <div id="authActions">
+                    <button id="loginBtn" class="btn btn-primary" onclick="login()">Войти</button>
+                    <button id="logoutBtn" class="btn btn-delete" style="display:none;" onclick="logout()">Выйти</button>
                 </div>
             </header>
 
             <div id="editorUI" class="editor" style="display: none;">
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;">
                     <button class="btn btn-save" onclick="manualSave()">
-                        <i class="fas fa-cloud-upload-alt"></i> Сохранить
+                        <i class="fas fa-save"></i> Сохранить в базу
                     </button>
-                    <button class="btn btn-delete" onclick="deleteCurrentNote()">
+                    <button class="btn btn-delete" onclick="deleteNote()">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-                <input type="text" id="noteTitle" class="editor-input" placeholder="Заголовок заметки">
-                <textarea id="noteContent" class="editor-textarea" placeholder="Ваш текст здесь..."></textarea>
-            </div>
-
-            <div id="emptyState" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-secondary);">
-                <i class="fas fa-book-open" style="font-size:3rem; margin-bottom:1rem; opacity:0.3;"></i>
-                <p id="statusMsg">Войдите в аккаунт, чтобы управлять заметками</p>
+                <input type="text" id="noteTitle" class="editor-input" placeholder="Заголовок">
+                <textarea id="noteContent" class="editor-textarea" placeholder="Ваш текст..."></textarea>
             </div>
         </div>
     </div>
@@ -112,108 +80,68 @@
         let currentNotes = [];
         let currentNoteId = null;
 
-        // AUTH LOGIC
-        function login() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider);
-        }
-
-        function logout() {
-            auth.signOut().then(() => {
-                location.reload();
-            });
-        }
+        function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+        function logout() { auth.signOut().then(() => location.reload()); }
 
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('logoutBtn').style.display = 'flex';
-                document.getElementById('authContent').style.display = 'block';
-                document.getElementById('userName').textContent = user.displayName;
-                document.getElementById('statusMsg').textContent = "Выберите заметку в списке";
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('sideActions').style.display = 'block';
                 loadNotes(user.uid);
-            } else {
-                document.getElementById('loginBtn').style.display = 'flex';
-                document.getElementById('logoutBtn').style.display = 'none';
             }
         });
 
-        // DATA LOGIC
         function loadNotes(uid) {
-            db.collection('users').doc(uid).collection('notes')
-                .orderBy('updated', 'desc')
-                .onSnapshot(snapshot => {
-                    currentNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderNotes();
-                });
+            db.collection('users').doc(uid).collection('notes').orderBy('updated', 'desc').onSnapshot(snap => {
+                currentNotes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderNotes();
+            });
         }
 
         function createNewNote() {
             const id = Date.now().toString();
-            const newNote = {
-                title: 'Новая заметка',
-                content: '',
-                updated: Date.now(),
-                type: 'note'
-            };
-            db.collection('users').doc(auth.currentUser.uid).collection('notes').doc(id).set(newNote);
+            const note = { title: 'Новая заметка', content: '', updated: Date.now(), type: 'note' };
+            db.collection('users').doc(auth.currentUser.uid).collection('notes').doc(id).set(note);
             openNote(id);
-        }
-
-        function manualSave() {
-            if (!currentNoteId || !auth.currentUser) return;
-            
-            const title = document.getElementById('noteTitle').value;
-            const content = document.getElementById('noteContent').value;
-
-            db.collection('users').doc(auth.currentUser.uid).collection('notes').doc(currentNoteId).update({
-                title: title,
-                content: content,
-                updated: Date.now()
-            }).then(() => {
-                alert("Заметка сохранена в базу!");
-            });
         }
 
         function openNote(id) {
             currentNoteId = id;
             const note = currentNotes.find(n => n.id === id);
             if (!note) return;
-
             document.getElementById('editorUI').style.display = 'flex';
-            document.getElementById('emptyState').style.display = 'none';
             document.getElementById('noteTitle').value = note.title;
             document.getElementById('noteContent').value = note.content;
             renderNotes();
         }
 
-        function renderNotes(data = currentNotes) {
+        function manualSave() {
+            if (!currentNoteId) return;
+            db.collection('users').doc(auth.currentUser.uid).collection('notes').doc(currentNoteId).update({
+                title: document.getElementById('noteTitle').value,
+                content: document.getElementById('noteContent').value,
+                updated: Date.now()
+            }).then(() => alert("Сохранено в Firebase!"));
+        }
+
+        function renderNotes() {
             const list = document.getElementById('notesList');
             list.innerHTML = '';
-            data.forEach(note => {
+            currentNotes.forEach(n => {
                 const div = document.createElement('div');
-                div.className = `note-item ${note.id === currentNoteId ? 'active' : ''}`;
-                div.onclick = () => openNote(note.id);
-                div.innerHTML = `
-                    <div class="note-title-small">${note.title || 'Без названия'}</div>
-                    <div style="font-size:0.75rem; color:var(--text-secondary)">${new Date(note.updated).toLocaleDateString()}</div>
-                `;
+                div.className = `note-item ${n.id === currentNoteId ? 'active' : ''}`;
+                div.onclick = () => openNote(n.id);
+                div.innerHTML = `<strong>${n.title || 'Без названия'}</strong>`;
                 list.appendChild(div);
             });
         }
 
-        function deleteCurrentNote() {
-            if (confirm("Удалить эту заметку?")) {
+        function deleteNote() {
+            if (confirm("Удалить?")) {
                 db.collection('users').doc(auth.currentUser.uid).collection('notes').doc(currentNoteId).delete();
                 document.getElementById('editorUI').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'flex';
-                currentNoteId = null;
             }
-        }
-
-        function searchNotes(q) {
-            const filtered = currentNotes.filter(n => n.title.toLowerCase().includes(q.toLowerCase()));
-            renderNotes(filtered);
         }
     </script>
 </body>
