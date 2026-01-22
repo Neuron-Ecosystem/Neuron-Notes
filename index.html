@@ -10,55 +10,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #6366f1; --primary-dark: #4f46e5; --bg: #0f0f23; --card-bg: #1a1b2e; --text: #ffffff; --text-secondary: #a0a0c0; --success: #22c55e; }
+        :root { --primary: #6366f1; --bg: #0f0f23; --card-bg: #1a1b2e; --text: #ffffff; --text-secondary: #a0a0c0; --success: #22c55e; }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; }
         .container { display: flex; height: 100%; max-width: 1400px; margin: 0 auto; }
         .sidebar { width: 300px; background: var(--card-bg); padding: 1rem; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
         .main-content { flex: 1; display: flex; flex-direction: column; }
-        .header { padding: 1rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
-        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; border: none; transition: 0.2s; }
+        .header { padding: 1rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; border: none; font-weight: bold; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-save { background: var(--success); color: white; }
-        .btn-delete { background: #ef4444; color: white; }
-        .notes-list { flex: 1; overflow-y: auto; margin-top: 10px; }
-        .note-item { background: rgba(255,255,255,0.03); padding: 1rem; margin-bottom: 0.8rem; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
+        .btn-save { background: var(--success); color: white; margin-right: 10px; }
+        .notes-list { flex: 1; overflow-y: auto; margin-top: 15px; }
+        .note-item { background: rgba(255,255,255,0.03); padding: 1rem; margin-bottom: 0.5rem; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
         .note-item.active { border-color: var(--primary); background: rgba(99, 102, 241, 0.1); }
         .editor { flex: 1; display: flex; flex-direction: column; padding: 2rem; }
-        .editor-input { border: none; background: transparent; color: var(--text); font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; outline: none; }
-        .editor-textarea { flex: 1; border: none; background: transparent; color: var(--text); font-size: 1.1rem; line-height: 1.6; resize: none; outline: none; }
+        .editor-input { border: none; background: transparent; color: var(--text); font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem; outline: none; }
+        .editor-textarea { flex: 1; border: none; background: transparent; color: var(--text); font-size: 1.1rem; resize: none; outline: none; line-height: 1.6; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <div id="sideActions" style="display: none;">
-                <button class="btn btn-primary" style="width: 100%;" onclick="createNewNote()">
-                    <i class="fas fa-plus"></i> Новая заметка
-                </button>
-            </div>
+            <button class="btn btn-primary" id="addBtn" style="display:none;" onclick="createNewNote()">+ Новая заметка</button>
             <div class="notes-list" id="notesList"></div>
         </div>
-
         <div class="main-content">
             <header class="header">
-                <h2>Neuron Notes</h2>
-                <div id="authActions">
+                <div style="font-weight:bold;">Neuron <span style="color:var(--primary)">Notes</span></div>
+                <div>
                     <button id="loginBtn" class="btn btn-primary" onclick="login()">Войти</button>
-                    <button id="logoutBtn" class="btn btn-delete" style="display:none;" onclick="logout()">Выйти</button>
+                    <button id="logoutBtn" class="btn btn-primary" style="display:none; background:#ef4444;" onclick="logout()">Выйти</button>
                 </div>
             </header>
-
             <div id="editorUI" class="editor" style="display: none;">
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;">
-                    <button class="btn btn-save" onclick="manualSave()">
-                        <i class="fas fa-save"></i> Сохранить в базу
-                    </button>
-                    <button class="btn btn-delete" onclick="deleteNote()">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <button class="btn btn-save" onclick="manualSave()"><i class="fas fa-save"></i> Сохранить для ИИ</button>
+                    <button class="btn" style="background:#ef4444; color:white;" onclick="deleteNote()"><i class="fas fa-trash"></i></button>
                 </div>
                 <input type="text" id="noteTitle" class="editor-input" placeholder="Заголовок">
-                <textarea id="noteContent" class="editor-textarea" placeholder="Ваш текст..."></textarea>
+                <textarea id="noteContent" class="editor-textarea" placeholder="Ваш текст здесь..."></textarea>
             </div>
         </div>
     </div>
@@ -87,7 +76,7 @@
             if (user) {
                 document.getElementById('loginBtn').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'block';
-                document.getElementById('sideActions').style.display = 'block';
+                document.getElementById('addBtn').style.display = 'block';
                 loadNotes(user.uid);
             }
         });
@@ -101,7 +90,7 @@
 
         function createNewNote() {
             const id = Date.now().toString();
-            const note = { title: 'Новая заметка', content: '', updated: Date.now(), type: 'note' };
+            const note = { title: 'Новая заметка', content: '', updated: Date.now() };
             db.collection('users').doc(auth.currentUser.uid).collection('notes').doc(id).set(note);
             openNote(id);
         }
@@ -116,43 +105,38 @@
             renderNotes();
         }
 
- async function manualSave() {
-    if (!currentNoteId || !auth.currentUser) return;
-    
-    const title = document.getElementById('noteTitle').value;
-    const content = document.getElementById('noteContent').value;
-    const uid = auth.currentUser.uid;
+        // САМАЯ ВАЖНАЯ ФУНКЦИЯ ДЛЯ ИИ
+        async function manualSave() {
+            if (!currentNoteId || !auth.currentUser) return;
+            
+            const title = document.getElementById('noteTitle').value;
+            const content = document.getElementById('noteContent').value;
+            const uid = auth.currentUser.uid;
 
-    try {
-        // 1. Сохраняем заметку в подколлекцию (для работы приложения)
-        await db.collection('users').doc(uid).collection('notes').doc(currentNoteId).set({
-            title: title,
-            content: content,
-            updated: Date.now(),
-            type: 'note'
-        }, { merge: true });
+            // 1. Сохраняем саму заметку
+            await db.collection('users').doc(uid).collection('notes').doc(currentNoteId).update({
+                title: title,
+                content: content,
+                updated: Date.now()
+            });
 
-        // 2. Формируем единую строку для ИИ (поле all_notes)
-        // Берем все текущие заметки и соединяем их в один текст
-        const notesSummary = currentNotes.map(n => {
-            // Если мы сохраняем текущую открытую заметку, берем свежие данные из инпутов
-            const t = n.id === currentNoteId ? title : n.title;
-            const c = n.id === currentNoteId ? content : n.content;
-            return `Заметка: ${t}\nТекст: ${c}`;
-        }).join('\n\n---\n\n');
+            // 2. Генерируем "all_notes" для ИИ
+            // Проходим по всем заметкам, обновляя текущую в памяти перед склейкой
+            const fullText = currentNotes.map(n => {
+                const t = n.id === currentNoteId ? title : n.title;
+                const c = n.id === currentNoteId ? content : n.content;
+                return `--- ${t} ---\n${c}`;
+            }).join('\n\n');
 
-        // 3. Записываем это поле туда, где его ищет ИИ
-        await db.collection('users').doc(uid).set({
-            all_notes: notesSummary,
-            last_updated: Date.now()
-        }, { merge: true });
+            // 3. Записываем в основной документ пользователя, который читает ИИ
+            await db.collection('users').doc(uid).set({
+                all_notes: fullText,
+                last_updated: Date.now()
+            }, { merge: true });
 
-        alert("Синхронизировано! ИИ теперь видит эту заметку.");
-    } catch (error) {
-        console.error("Ошибка сохранения:", error);
-        alert("Ошибка при сохранении в облако");
-    }
-}
+            alert("Сохранено! Теперь ИИ увидит изменения.");
+        }
+
         function renderNotes() {
             const list = document.getElementById('notesList');
             list.innerHTML = '';
@@ -166,7 +150,7 @@
         }
 
         function deleteNote() {
-            if (confirm("Удалить?")) {
+            if (confirm("Удалить заметку?")) {
                 db.collection('users').doc(auth.currentUser.uid).collection('notes').doc(currentNoteId).delete();
                 document.getElementById('editorUI').style.display = 'none';
             }
